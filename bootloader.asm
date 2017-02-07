@@ -2,6 +2,13 @@
 ;|  SECTOR 1 - Primary Bootloader  |
 ;+---------------------------------+
 
+; TODO:
+;	Add repeats to ReadSectors
+;	Setup Get_File as an interrupt
+;	Get variables under control
+; 	Make room for stack setup
+; 	General Cleanup
+
 [bits 16]
 [org 0x0000]
 
@@ -42,20 +49,31 @@ loader:
 	mov ax, 0x07C0
 	mov	ds, ax
 	mov	es, ax
-	mov ax, 0x0000
-	mov ss, ax
-	mov sp, 0xFFFF
+	;mov ax, 0x0000								; Not enough room to set up stack so have to hope it is in an OK area
+	;mov ss, ax
+	;mov sp, 0xFFFF
 	sti
 	
 	mov [DISK_VARS.DISK], dl					; Set disk
 	
-	mov ax, Disk.Get_File
+	mov ax, Disk.Get_File						; Set up so a call to 0x0000:7C00 will go to Get_File
 	mov [0x0001], ax
 	
-	mov si, [DISK_VARS.FILENAME]
+	;mov ax, 0x0000																											-+
+	;mov ds, ax																												 |
+	;																														 |
+	;mov ax, Disk.Get_File																									 |
+	;mov [0x0080], ax							; INT 20h is at 0x0000 + (0x0004 * 0x0020)		=		0x0080h			 	 +- Setup as interrupt
+	;																														 |
+	;mov [0x0082], ds																										 |
+	;																														 |
+	;mov ds, ax																												-+
+	
+	mov si, DISK_VARS.FILENAME
 	mov ax, 0x0000								; Offset:	0x0000
 	mov bx, 0x0A00								; Segment:	0x0A00
-	call Disk.Get_File
+	xchg bx, bx
+	call 0x07C0:Disk.Get_File
 	
 	jmp 0x0A00:0x0000							; Jump to Second Stage
 
@@ -65,7 +83,7 @@ Disk:
 		mov ah, 0
 		mov dl, [DISK_VARS.DISK]
 		int 0x13
-		jc .Error
+		;jc .Error
 		ret
 
 	.ReadSectors:
@@ -89,8 +107,6 @@ Disk:
 		ret
 	
 	.Load_RD:
-		push ax
-		
 		; Compute size of Root Directory
 		mov ax, 32	        						; ( 32 byte directory entry
 		mul WORD [bpbRootEntries]  					;   * Number of root entrys )
@@ -115,12 +131,12 @@ Disk:
 		call Disk.Reset								; Reset disk
 		call Disk.ReadSectors						; Load root directory
 	
-		pop ax
 		ret
 	
 	.Search_For_File:
 		mov cx, [bpbRootEntries]        		; Get the number of entries. If we reach 0, file doesnt exist
 		mov di, 0x0200        					; Root directory was loaded here
+		mov si, [DISK_VARS.FILENAME]
 		.Loop:
 			push cx
 			mov cx, 11
@@ -165,9 +181,9 @@ Disk:
 		ret
 		
 	.LBA_To_CHS:
-		;Absolute Sector 	= 	(LBA  %  SectorsPerTrack) + 1
-		;Absolute Head   	= 	(LBA  /  SectorsPerTrack) % Heads
-		;Absolute Cylinder 	= 	 LBA  / (SectorsPerTrack  * Heads)
+		; Absolute Sector 	= 	(LBA  %  SectorsPerTrack) + 1
+		; Absolute Head   	= 	(LBA  /  SectorsPerTrack) % Heads
+		; Absolute Cylinder 	= 	 LBA  / (SectorsPerTrack  * Heads)
 		
 		mov dx, 0
 		mov ax, WORD [DISK_VARS.LBA]
@@ -228,26 +244,35 @@ Disk:
 			ret
 		
 	.Get_File:
+		push es
+		push ds
 		push ax
 		push bx
-		push si
 		
-		mov ax, 0x07C0
-		mov	ds, ax
-		mov	es, ax
+		mov ax, 0x07C0								; Set ES to current segment
+		mov	es, ax									; so that
+		mov di, DISK_VARS.FILENAME					; ES:DI points to string variable	&	DS:SI already points to filename string
+
+		mov cx, 11									; Set to 11 bytes
+		rep movsb									; Copy string accross
+		
+		mov	ds, ax									; Now also set DS to current segment
 		
 		call Disk.Load_RD							; Load Root Directory
-		pop si
-		call Disk.Search_For_File					; Find Second Stage
+		
+		call Disk.Search_For_File					; Find File
 		call Disk.Load_FAT							; Load FAT
-	
+		
 		pop bx
 		mov [DISK_VARS.MEM_SEGMENT], bx
 		pop ax
 		mov [DISK_VARS.MEM_OFFSET], ax
-	
+		
 		call Disk.Load_File
-		ret
+		
+		pop ds
+		pop es
+		retf
 		
 	.Error:
 		mov ah, 0x0e
@@ -266,32 +291,28 @@ DISK_VARS:
 		;db 0
 	;.SECTOR:
 		;db 0
+	;.SECTORS_TO_READ:
+		;db 0
 		
 	DISK_VARS.CYLINDER EQU 0x0400			; To save space
 	DISK_VARS.HEAD EQU 0x0401
 	DISK_VARS.DISK EQU 0x0402
 	DISK_VARS.SECTOR EQU 0x0403
+	DISK_VARS.SECTORS_TO_READ EQU 0x0404
 	
-	.SECTORS_TO_READ:
-		db 0
 	.MEM_SEGMENT:
 		dw 0x07E0
 	.MEM_OFFSET:
 		dw 0x0000
 	.FILENAME:
 		db "SECTOR2 SYS", 0
-		
+	
 	.CLUSTER:								; That trick doesn't work here for some reason - ???
 		dw 0
 	.LBA:
 		dw 0
 	.RD_START:
 		dw 0
-		
-	;DISK_VARS.CLUSTER EQU 0x0404
-	;DISK_VARS.LBA EQU 0x0406
-	;DISK_VARS.RD_START EQU 0x0408
-	;DISK_VARS.RD_SIZE EQU 0x040A
 	
 	; 0x0000 - 0x01FF	-	Bootloader
 	; 0x0200 - 0x03FF	-	FAT / RD

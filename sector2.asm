@@ -1,5 +1,5 @@
 ;+---------------------------------+
-;| SECTOR 2 - Secondary Bootloader |
+;| SECTOR 2 - Secondary Bootloader |	Currently for testing primary bootloader
 ;+---------------------------------+
 
 [bits 16]
@@ -21,7 +21,13 @@ sti
 mov si, TestString
 call Print
 
-call 0x07C0:0x0000							; This returns a disk error (probably because no parameters were set)
+mov si, FILENAME							; Reload file
+mov ax, 0x0000								; Offset:	0x0000
+mov bx, 0x0A00								; Segment:	0x0A00
+;int 20h
+call 0x07C0:0x0000							; Far Call
+
+jmp 0x0A00:0x0000							; Jump back to start
 
 cli
 hlt
@@ -82,7 +88,7 @@ Debug:
 		ret
 		
 ; ----- Data -----
-DEAD:
-	dw 0xDEAD
+FILENAME:
+	db "SECTOR2 SYS", 0
 TestString:
 	db "Hello World!", 0x0A, 0x0D, 0
