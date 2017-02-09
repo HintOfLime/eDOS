@@ -22,12 +22,16 @@ mov si, TestString
 call Print
 
 mov si, FILENAME							; Reload file
-mov ax, 0x0000								; Offset:	0x0000
+;call Print
+mov ax, 0x0200								; Offset:	0x0200
 mov bx, 0x0A00								; Segment:	0x0A00
 ;int 20h
 call 0x07C0:0x0000							; Far Call
 
-jmp 0x0A00:0x0000							; Jump back to start
+;jmp 0x0A00:0x0000							; Jump back to start
+
+mov si, 0x0200
+call Print
 
 cli
 hlt
@@ -89,6 +93,6 @@ Debug:
 		
 ; ----- Data -----
 FILENAME:
-	db "SECTOR2 SYS", 0
+	db "TEST    TXT", 0
 TestString:
 	db "Hello World!", 0x0A, 0x0D, 0
