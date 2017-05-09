@@ -1,5 +1,5 @@
 ;+---------------------------------+
-;| SECTOR 2 - Secondary Bootloader |	Currently for testing primary bootloader
+;| SECTOR 2 - Secondary Bootloader |
 ;+---------------------------------+
 
 [bits 16]
@@ -10,7 +10,7 @@
 
 ; Setup Segments and Stack
 cli
-mov ax, 0x0A00
+mov ax, 0x1000
 mov	ds, ax
 mov	es, ax
 mov ax, 0x0000
@@ -21,23 +21,9 @@ sti
 mov si, TestString
 call Print
 
-mov si, FILENAME							; Reload file
-;call Print
-mov ax, 0x0200								; Offset:	0x0200
-mov bx, 0x0A00								; Segment:	0x0A00
-;int 20h
-call 0x07C0:0x0000							; Far Call
-
-;jmp 0x0A00:0x0000							; Jump back to start
-
-mov si, 0x0200
-call Print
-
 cli
 hlt
 
-
-; ----- Routines -----
 ; Prints a string
 ; SI = Start address of string
 Print:
@@ -90,9 +76,6 @@ Debug:
 		int 0x10
 		pop ax
 		ret
-		
-; ----- Data -----
-FILENAME:
-	db "TEST    TXT", 0
-TestString:
-	db "Hello World!", 0x0A, 0x0D, 0
+
+TestString: db "Hello World!", 0x0A, 0x0D, 0
+times 65536 - ($-$$) db 0xFF
