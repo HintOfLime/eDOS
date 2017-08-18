@@ -2,6 +2,8 @@
 ;|  ROUTINES - Disk                |
 ;+---------------------------------+
 
+[bits 16]
+
 ; TODO:
 ;	Add repeats to ReadSectors // Problematic because can't use CX to loop because it is needed for INT 0x13
 ;	Increase max file size // Not needed at the moment
@@ -264,4 +266,4 @@ Disk:
 		hlt
 	
 ERROR_MESSAGE:
-	db "A disk error occurred!", 0
+	db "Disk error!", 0

@@ -7,31 +7,31 @@
 
 Start:
 	jmp 0x07C0:Loader							; Jump over OEM block
-	nop											; This is supposedly good practice?
- 
+	nop
+
 ;*************************************************;
 ;	OEM Parameter block / BIOS Parameter Block    ;
 ;*************************************************;
 TIMES 0Bh-$+Start DB 0
 
-bpbBytesPerSector:  	DW 512
-bpbSectorsPerCluster: 	DB 1
-bpbReservedSectors: 	DW 1
-bpbNumberOfFATs: 		DB 2
-bpbRootEntries: 		DW 224
-bpbTotalSectors: 		DW 2880
-bpbMedia: 	       		DB 0xF0
-bpbSectorsPerFAT: 		DW 9
-bpbSectorsPerTrack: 	DW 18
-bpbHeadsPerCylinder: 	DW 2
-bpbHiddenSectors:       DD 0
-bpbTotalSectorsBig:     DD 0
-bsDriveNumber: 	        DB 0
-bsUnused: 	        	DB 0
-bsExtBootSignature: 	DB 0x29
-bsSerialNumber:	        DD 0xa0a1a2a3
-bsVolumeLabel: 	        DB "EDOS       "
-bsFileSystem: 	        DB "FAT12   "
+bpbBytesPerSector:  	DW 512					; 11 Byte offset
+bpbSectorsPerCluster: 	DB 1					; 13
+bpbReservedSectors: 	DW 1					; 14
+bpbNumberOfFATs: 		DB 2					; 16
+bpbRootEntries: 		DW 224					; 17
+bpbTotalSectors: 		DW 2880					; 19
+bpbMedia: 	       		DB 0xF0					; 21
+bpbSectorsPerFAT: 		DW 9					; 22
+bpbSectorsPerTrack: 	DW 18					; 24
+bpbHeadsPerCylinder: 	DW 2					; 26
+bpbHiddenSectors:       DD 0					; 28
+bpbTotalSectorsBig:     DD 0					; 32
+bsDriveNumber: 	        DB 0					; 36
+bsUnused: 	        	DB 0					; 37
+bsExtBootSignature: 	DB 0x29					; 38
+bsSerialNumber:	        DD 0xa0a1a2a3			; 42
+bsVolumeLabel: 	        DB "EDOS       "		; 43
+bsFileSystem: 	        DB "FAT12   "			; 44
 ;*************************************************;
 
 Loader:
@@ -44,18 +44,18 @@ Loader:
 	mov ss, ax
 	mov sp, 0xFFFF
 	sti
-	
+
 	mov [DISK], dl							; Set disk
-	
+
 	mov si, FILENAME
-	mov bx, 0x0000							; Offset:	0x0000
-	mov ax, 0x1000							; Segment:	0x1000
+	mov bx, 0x0000							; Offset
+	mov ax, 0x0050							; Segment
 	call Disk.GetFile
-	
-	jmp 0x1000:0x0000						; Jump to Second Stage
+
+	jmp 0x0000:0x0500						; Jump to Second Stage
 
 ; ----- Routines -----
-%include "disk.asm"
+%include "src/disk.asm"
 
 Print:
 	push ax
@@ -69,8 +69,8 @@ Print:
 	.Exit:
 		pop ax
 		ret
-		
-; ----- Variables -----		
+
+; ----- Variables -----
 DISK EQU 0xF000
 LBA EQU 0xF002
 RD_START EQU 0xF004
@@ -80,7 +80,7 @@ MEM_OFFSET:
 	dw 0x0200
 
 FILENAME:
-	db "SECTOR2 SYS", 0
-	
+	db "LOADER  SYS"
+
 times 510 - ($-$$) db 0
 dw 0xAA55
