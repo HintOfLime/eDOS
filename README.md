@@ -1,5 +1,5 @@
 # eDOS
-A simple X86 Realmode Bootloader and Operating System (eventually).
+A simple X86 Bootloader and Operating System (eventually).
 
 # Current Features:
-* FAT12 support
+* Can boot from a FAT12 formatted disk
