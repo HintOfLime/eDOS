@@ -19,26 +19,30 @@ sti
 mov si, Stg2Msg
 call Print
 
-call LoadELF
-
-cli
-hlt
-
 call EnableA20_Keyboard_Out
 
+; Check if we memory above 1Mb is wrapped around
 push ds
-mov ax, 0xFFFF						; Check if we memory above 1Mb is wrapped around
+mov ax, 0xFFFF
 mov ds, ax
 mov ax, [0x7E0E]
 pop ds
 mov bx, [0x7DFE]
 cmp ax, bx
-je A20Error							; If we get the magic boot number then we must have wrapped around
+je A20Error						; If we get the magic boot number then we must have wrapped around
 
-lgdt [gdt_pointer]					; Load GDT
+; Load kernel into memory
+mov si, FILENAME
+mov bx, 0x0000					; Offset
+mov ax, 0x0300					; Segment
+call Disk.GetFile
 
+; Load GDT
+lgdt [gdt_pointer]
+
+; Switch to protected mode
 cli
-mov		eax, cr0					; Set bit 0 in CR0 to enter protected mode
+mov		eax, cr0
 or		eax, 1
 mov		cr0, eax
 
@@ -65,9 +69,8 @@ bsSerialNumber:	        DD 0xa0a1a2a3			; 42
 bsVolumeLabel: 	        DB "EDOS       "		; 43
 bsFileSystem: 	        DB "FAT12   "			; 44
 
-%include "src/disk.asm"
-%include "src/elf.asm"
-%include "src/a20.asm"
+%include "disk.asm"
+%include "a20.asm"
 
 ; Prints a string
 ; SI = Start address of string
@@ -150,16 +153,18 @@ LBA EQU 0xF002
 RD_START EQU 0xF004
 RD_SIZE EQU 0xF006
 
+FILENAME:
+	db "KERNEL  BIN"
+
 MEM_OFFSET:
 	dw 0x1000
 
 Stg2Msg: db "Second stage loaded!", 0x0A, 0x0D, 0
-FILENAME: db "KERNEL  ELF", 0
 A20ErrorMsg: db "A20 error!", 0x0A, 0x0D, 0
 
 [bits 32]
 
-%include "src/video.asm"
+%include "video.asm"
 
 Pmode:
 mov		ax, 0x10					; Set data segments to data selector (0x10)
@@ -173,11 +178,20 @@ call ClrScreen
 mov esi, Stg3Msg
 call PutS
 
-call MoveELF
+; Copy kernel to 1MB (0x10000)
+mov	eax, dword 2	; This should be the size of the kernel, temporarily hardcoded to 1Kb
+movzx	ebx, word [bpbBytesPerSector]
+mul	ebx
+mov	ebx, 4
+div	ebx
+cld
+mov esi, 0x3000		; Initial location
+mov	edi, 0x100000	; Final location
+mov	ecx, eax
+rep	movsd
 
-cli
-hlt
+xchg bx, bx
 
-call 0x8:EntryPoint					; Execute our kernel!
+jmp 0x100000
 
 Stg3Msg: db "Now in protected mode!", 0x0A, 0x0D, 0

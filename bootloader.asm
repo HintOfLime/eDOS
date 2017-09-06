@@ -55,7 +55,7 @@ Loader:
 	jmp 0x0000:0x0500						; Jump to Second Stage
 
 ; ----- Routines -----
-%include "src/disk.asm"
+%include "disk.asm"
 
 Print:
 	push ax

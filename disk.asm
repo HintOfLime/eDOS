@@ -147,7 +147,7 @@ Disk:
 	.SearchRD:
 		mov cx, [bpbRootEntries]
 		mov di, [MEM_OFFSET]
-		mov si, FILENAME
+		;mov si, FILENAME
 		.Loop:
 			push cx
 			mov cx, 11

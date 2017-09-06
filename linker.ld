@@ -1,37 +1,14 @@
-ENTRY(main)
+/* These are the commands I use to compile:															*/
+/* i686-elf-gcc -ffreestanding -nostdlib -g -o build/kernel.o -lgcc -T src/linker.ld src/kernel.c	*/
+/* objcopy -O binary build/kernel.o build/KERNEL.BIN												*/
 
-SECTIONS
-{
-	. = 1M;
+ENTRY(kernel_main)
 
-  /* Multiboot header */
-  /*.rodata BLOCK(4K) : ALIGN(4K)
-	{
-		*(.multiboot)
-	}*/
- 
-	/* Executable code */
-	.text BLOCK(4K) : ALIGN(4K)
-	{
-		*(.text)
-	}
- 
-	/* Read-only data. */
-	.rodata BLOCK(4K) : ALIGN(4K)
-	{
-		*(.rodata)
-	}
- 
-	/* Read-write data (initialized) */
-	.data BLOCK(4K) : ALIGN(4K)
-	{
-		*(.data)
-	}
- 
-	/* Read-write data (uninitialized) and stack */
-	.bss BLOCK(4K) : ALIGN(4K)
-	{
-		*(COMMON)
-		*(.bss)
-	}
+SECTIONS {
+	. = 0x10000;
+	.text : { *(.text) }
+
+	. = 0x20000;
+	.data : { *(.data) }
+	.bss : { *(.bss) }
 }

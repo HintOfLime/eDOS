@@ -7,7 +7,7 @@
 %define	VIDMEM	0xB8000					; Video memory address
 %define COLUMNS	80				
 %define ROWS	25
-%define	CHAR_ATTRIB 00001111b			; White in black
+%define	CHAR_ATTRIB 00000111b			; White in black
 
 CurX:	db 0
 CurY:	db 0
