@@ -13,7 +13,7 @@ LOADER.SYS:
 	nasm src/loader.asm -o build/LOADER.SYS
 
 kernel.o:
-	gcc -ffreestanding -nostdlib -g -o build/kernel.o -lgcc -T src/linker.ld src/kernel.c
+	/usr/local/bin/i686-elf-gcc -ffreestanding -nostdlib -g -o build/kernel.o -lgcc -T src/linker.ld src/kernel.c
 
 KERNEL.SYS: kernel.o
 	objcopy -O binary build/kernel.o build/KERNEL.SYS

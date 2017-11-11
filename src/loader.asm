@@ -190,8 +190,13 @@ mov	edi, 0x100000	; Final location
 mov	ecx, eax
 rep	movsd
 
+mov esi, Stg4Msg
+call PutS
+
 xchg bx, bx
 
+cli
 jmp 0x100000
 
 Stg3Msg: db "Now in protected mode!", 0x0A, 0x0D, 0
+Stg4Msg: db "Jumping to kernel!", 0x0A, 0x0D, 0

@@ -1,11 +1,22 @@
-// WOO! We are running in C!
+// I know this is nasty but we have to have the code we want to execute at the begining of the file
+void kernel_entry () {
+	kernel_main();
+}
+
+#include "video.c"
+#include "FAT12.c"
+
+void halt () {
+	__asm__("cli\n\thlt\n\t");
+}
 
 void kernel_main () {
-	// For now we just fill the screen with C's to prove that we actually running
-	int c = 0x07000743;
-	int i = 0xb8000;
-	while (1) {
-		*((int*)i)=c;
-		i += 2;
-	}
+	char *vidptr = (char*)0xb8000;
+	
+	fill_screen(vidptr, ' ', 0x07);
+	put_string(vidptr, "Kernel running!\r\n", 0x07);
+	
+	load_file("TEST    TXT", 0, 0x400000);
+	
+	halt();
 }
