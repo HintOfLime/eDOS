@@ -1,5 +1,3 @@
-#include "video.h"
-
 const unsigned int WIDTH =  80;
 const unsigned int HEIGHT = 25;
 
@@ -20,6 +18,7 @@ void fill_screen (char *vidptr, char c, char a) {
 	return;
 }
 
+// So basically turns out none of my fancy XY stuff works :(
 void put_string (char *vidptr, char *str, char a) {
 	unsigned int i = 0;
 	while (str[i] != '\0') {
@@ -36,6 +35,8 @@ void put_string (char *vidptr, char *str, char a) {
 				vidptr[(vidX+(vidY*WIDTH))*2] = str[i];
 				vidptr[((vidX+(vidY*WIDTH))*2)+1] = a;
 				vidX += 1;
+				//vidptr[(i*2)] = str[i];
+				//vidptr[(i*2)+1] = a;
 				break;
 			}
 		}

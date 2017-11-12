@@ -179,7 +179,7 @@ mov esi, Stg3Msg
 call PutS
 
 ; Copy kernel to 1MB (0x10000)
-mov	eax, dword 2	; This should be the size of the kernel, temporarily hardcoded to 1Kb
+mov	eax, dword 2000	; This should be the size of the kernel, temporarily hardcoded to 1MB
 movzx	ebx, word [bpbBytesPerSector]
 mul	ebx
 mov	ebx, 4

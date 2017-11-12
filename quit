@@ -1,0 +1,37 @@
+[33mcommit 97f9e35dfe8a5b28673ef93aa741eb633e5c46c3[m
+Author: HintOfLime <edwardatki@gmail.com>
+Date:   Sat Nov 11 23:44:12 2017 +0000
+
+    Added some video functions and a .gitignore for all my build files.
+
+[33mcommit 949d6ea2ca2c6d254f12bcc031c6952ecfcdab06[m
+Author: HintOfLime <edwardatki@gmail.com>
+Date:   Fri Nov 10 23:18:04 2017 +0000
+
+    Accidently removed makefile alongside duplicates, not having a good day :(
+
+[33mcommit a91192acff8835f53a55dcb1a8fc1b5343bb4e17[m
+Author: HintOfLime <edwardatki@gmail.com>
+Date:   Fri Nov 10 23:06:57 2017 +0000
+
+    Forgot to remove duplicates
+
+[33mcommit 1cc417071e2b27ab9fac8554e32fb7924e79dcd2[m
+Author: HintOfLime <edwardatki@gmail.com>
+Date:   Fri Nov 10 23:03:17 2017 +0000
+
+    Created a makefile to make my life a bit easier although it has stopped my C code from doing anything but such is life!
+
+[33mcommit c9e0463dbf28ed47e95495ae892c6562903e1a2a[m
+Author: Edward Atkinson <edwardatki@gmail.com>
+Date:   Wed Sep 6 22:22:13 2017 +0100
+
+    Update README.md
+
+[33mcommit cadc0e5d63e66e8363c62b1f332a118e2e8039e8[m
+Author: Edward Atkinson <edwardatki@gmail.com>
+Date:   Wed Sep 6 22:20:50 2017 +0100
+
+    Actually running in C now!
+    
+    Decided to skip over ELF parsing for now and just compile to a flat binary, this will probably cause issues at some point.
