@@ -9,8 +9,6 @@ LoadELF:
 	mov ax, IMAGE_RMODE_BASE/10
 	call Disk.GetFile
 	
-	xchg bx, bx
-	
 	; Check magic ELF double word
 	mov edx, [MagicELF]
 	push ds

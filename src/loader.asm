@@ -193,8 +193,6 @@ rep	movsd
 mov esi, Stg4Msg
 call PutS
 
-xchg bx, bx
-
 cli
 jmp 0x100000
 

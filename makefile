@@ -4,7 +4,10 @@ init:
 	mkdir -p build
 
 run: ALL
-	qemu-system-i386 -monitor stdio -drive format=raw,if=floppy,file=BootDisk.img
+	qemu-system-i386 -drive format=raw,if=floppy,file=BootDisk.img
+
+debug: ALL
+	bochs -f bochsrc.bxrc -q
 
 BOOTLOADER.BIN:
 	nasm src/bootloader.asm -o build/BOOTLOADER.BIN

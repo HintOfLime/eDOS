@@ -8,7 +8,7 @@
 #define ICW4_AUTO 0x02
 #define ICW4_BUF_SLAVE 0x04
 #define ICW4_BUF_MASTER 0x08
-#define  ICW4_SFNM 0x10
+#define ICW4_SFNM 0x10
 
 #define PIC_READ_IRR 0x0A
 #define PIC_READ_ISR 0x0B
@@ -25,17 +25,17 @@ enum PIC_COMMANDS {
 };
 
 struct IDT_Descriptor {
-	uint16_t baseLow : 16;
-	uint16_t selector : 16;
-	uint8_t reserved : 8;
-	uint8_t flags : 8;
-	uint16_t baseHigh : 16;
-};
+	unsigned int baseLow : 16;
+	unsigned int selector : 16;
+	unsigned int zero : 8;
+	unsigned int flags : 8;
+	unsigned int baseHigh : 16;
+} __attribute__ ((__packed__));
 
 struct IDT_Pointer {
-	uint16_t end : 16;
-	uint32_t start : 32;
-};
+	unsigned int end : 16;
+	unsigned int start : 32;
+} __attribute__ ((__packed__));
 
 void initialise_PICs (uint8_t offset1, uint8_t offset2) {
 	uint8_t a1, a2;
@@ -118,20 +118,23 @@ uint16_t get_PIC_ISR () {
 	return get_IRQ_reg(PIC_READ_ISR);
 }
 
-void setup_IDT (uint32_t *ISRs) {
+uint32_t setup_IDT (uint32_t *ISRs) {
 	// Disable interupts
 	asm volatile ("cli\n\t");
 
 	// Create a descriptor
-	struct IDT_Descriptor descriptor[2];
+	struct IDT_Descriptor descriptor[256];
 
-	for (int i = 0; i < sizeof(ISRs)/4; i++)	{
+	for (int i = 0; i < 256; i++)	{
 		// Set ISR address
-		descriptor[i].baseLow = ISRs[i] & 0x0000FFFF;
-		descriptor[i].baseHigh = (ISRs[i] >> 16) & 0x0000FFFF;
+		descriptor[i].baseLow = (uint16_t)(ISRs[i] & 0x0000FFFF);
+		descriptor[i].baseHigh = (uint16_t)((ISRs[i] >> 16) & 0x0000FFFF);
 
 		// Set the selector to our code segment
-		descriptor[i].selector = 0x8;
+		descriptor[i].selector = 0x08;
+
+		// Set the reserved byte to zero
+		descriptor[i].zero = 0;
 
 		// Set flags for 32-bit, Ring 0
 		descriptor[i].flags = 0b010001110;
@@ -140,9 +143,11 @@ void setup_IDT (uint32_t *ISRs) {
 	// Create IDT pointer
 	struct IDT_Pointer pointer;
 	pointer.start = &descriptor;
-	pointer.end = (sizeof(ISRs)/4)*8;
+	pointer.end = (256*8)-1;
 
-	uint32_t pointer_pointer = &pointer;
+	uint32_t idt_pointer_address = &pointer;
 
-	asm volatile ("mov %%ebx, %0\n\tlidt (%%ebx)\n\tsti\n\t" : : "r"(pointer_pointer) : "%ebx");
+	asm volatile ("lidt (%0); sti" :: "r"(idt_pointer_address));
+
+	return idt_pointer_address;
 }

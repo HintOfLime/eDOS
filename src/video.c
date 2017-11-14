@@ -18,7 +18,6 @@ void fill_screen (char *vidptr, char c, char a) {
 	return;
 }
 
-// So basically turns out none of my fancy XY stuff works :(
 void put_string (char *vidptr, char *str, char a) {
 	unsigned int i = 0;
 	while (str[i] != '\0') {
@@ -45,9 +44,9 @@ void put_string (char *vidptr, char *str, char a) {
 			vidX = 0;
 			vidY += 1;
 		}
-		if (vidY > HEIGHT) {
+		if (vidY > HEIGHT-1) {
 			scroll_screen(vidptr, 1);
-			vidY = HEIGHT;
+			vidY = HEIGHT-1;
 		}
 		
 		i += 1;
@@ -61,16 +60,10 @@ void scroll_screen (char *vidptr, unsigned int rows) {
 	unsigned int j = 0;
 	while (i < rows) {
 		while (j < WIDTH*HEIGHT*2) {
-			if (j > WIDTH*(HEIGHT-1)*2) {
-				vidptr[j] = ' ';
-				vidptr[j+1] = 0x07;
-				j += 2;
-			}
-			else {
 				vidptr[j] = vidptr[j+(WIDTH*2)];
 				j += 2;
-			}
 		}
+
 		j = 0;
 		i += 1;
 	}
