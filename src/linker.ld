@@ -1,14 +1,19 @@
-/* These are the commands I use to compile:															*/
-/* i686-elf-gcc -ffreestanding -nostdlib -g -o build/kernel.o -lgcc -T src/linker.ld src/kernel.c	*/
-/* objcopy -O binary build/kernel.o build KERNEL.BIN							*/
-
+/*OUTPUT_FORMAT("binary")*/
 ENTRY(kernel_entry)
 
 SECTIONS {
-	. = 0x100000;
-	.text : { *(.text) }
-
-	. = 0x200000;
-	.data : { *(.data) }
-	.bss : { *(.bss) }
+  . = 0x100000;
+  .text BLOCK(4K) : ALIGN(4K) {
+		*(.text)
+	}
+	.rodata BLOCK(4K) : ALIGN(4K) {
+		*(.rodata)
+	}
+	.data BLOCK(4K) : ALIGN(4K) {
+		*(.data)
+	}
+	.bss BLOCK(4K) : ALIGN(4K) {
+		*(COMMON)
+		*(.bss)
+	}
 }

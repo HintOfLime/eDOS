@@ -1,3 +1,5 @@
+#include "video.h"
+
 const unsigned int WIDTH =  80;
 const unsigned int HEIGHT = 25;
 

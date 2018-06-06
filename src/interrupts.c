@@ -1,3 +1,9 @@
+#include "stdint.h"
+#include "interrupts.h"
+
+#include "ports.h"
+#include "video.h"
+
 #define ICW1_ICW4 0x01
 #define ICW1_SINGLE 0x02
 #define ICW1_INTERVAL4 0x04
@@ -36,6 +42,8 @@ struct IDT_Pointer {
 	unsigned int end : 16;
 	unsigned int start : 32;
 } __attribute__ ((__packed__));
+
+static struct IDT_Descriptor descriptor[256];
 
 void initialise_PICs (uint8_t offset1, uint8_t offset2) {
 	uint8_t a1, a2;
@@ -104,7 +112,7 @@ void disable_PIC_IRQ (uint8_t irq) {
 	outb(port, data);
 }
 
-static uint16_t get_IRQ_reg (uint8_t ocw3) {
+uint16_t get_IRQ_reg (uint8_t ocw3) {
 	outb(PIC1_COMMAND, ocw3);
 	outb(PIC2_COMMAND, ocw3);
 	return (inb(PIC2_COMMAND)<< 8 | inb(PIC1_COMMAND));
@@ -118,36 +126,53 @@ uint16_t get_PIC_ISR () {
 	return get_IRQ_reg(PIC_READ_ISR);
 }
 
-uint32_t setup_IDT (uint32_t *ISRs) {
+void update_IDT () {
 	// Disable interupts
 	asm volatile ("cli\n\t");
 
-	// Create a descriptor
-	struct IDT_Descriptor descriptor[256];
+	// Setup IDT pointer
+	struct IDT_Pointer pointer;
+	pointer.start = (uint32_t)&descriptor;
+	pointer.end = (uint16_t)(256*8)-1;
 
+	// Load IDT
+	uint32_t idt_pointer_address = (uint32_t)&pointer;
+	asm("xchgw %bx, %bx");
+	asm volatile ("lidt (%0); sti" :: "r"(idt_pointer_address));
+}
+
+void setup_handler(uint8_t interrupt, uint32_t handler_address) {
+	// Set address
+	descriptor[interrupt].baseLow = (uint16_t)((uint32_t)handler_address & 0x0000FFFF);
+	descriptor[interrupt].baseHigh = (uint16_t)(((uint32_t)handler_address >> 16) & 0x0000FFFF);
+
+	// Set the selector to our code segment
+	descriptor[interrupt].selector = (uint16_t)0x08;
+
+	// Set the reserved byte to zero
+	descriptor[interrupt].zero = (uint8_t)0;
+
+	// Set flags for 32-bit, Ring 0
+	descriptor[interrupt].flags = (uint8_t)0b010001110;
+}
+
+void initialize_IDT (uint32_t default_handler) {
+	// Setup descriptor
 	for (int i = 0; i < 256; i++)	{
-		// Set ISR address
-		descriptor[i].baseLow = (uint16_t)(ISRs[i] & 0x0000FFFF);
-		descriptor[i].baseHigh = (uint16_t)((ISRs[i] >> 16) & 0x0000FFFF);
-
-		// Set the selector to our code segment
-		descriptor[i].selector = 0x08;
-
-		// Set the reserved byte to zero
-		descriptor[i].zero = 0;
-
-		// Set flags for 32-bit, Ring 0
-		descriptor[i].flags = 0b010001110;
+		setup_handler(i, default_handler);
 	}
 
-	// Create IDT pointer
-	struct IDT_Pointer pointer;
-	pointer.start = &descriptor;
-	pointer.end = (256*8)-1;
+	update_IDT();
+}
 
-	uint32_t idt_pointer_address = &pointer;
+void setup_interrupts(uint32_t default_IRQ_handler) {
+	initialise_PICs(0x20, 0x28);
+	put_string((char*)0xb8000, "PICs remapped\n\r", 0x07);
 
-	asm volatile ("lidt (%0); sti" :: "r"(idt_pointer_address));
+	for (int i = 0; i < 16; i++) {
+		disable_PIC_IRQ(i);
+	}
 
-	return idt_pointer_address;
+	initialize_IDT(default_IRQ_handler);
+	put_string((char*)0xb8000, "IDT loaded\n\r", 0x07);
 }
