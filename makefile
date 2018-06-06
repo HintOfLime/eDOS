@@ -15,11 +15,15 @@ BOOTLOADER.BIN:
 LOADER.SYS:
 	nasm src/loader.asm -o build/LOADER.SYS
 
-kernel.o:
-	/usr/local/bin/i686-elf-gcc -ffreestanding -nostdlib -g -o build/kernel.o -lgcc -T src/linker.ld src/kernel.c
+KERNEL.SYS:
+	/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/kernel.o src/kernel.c -lgcc
+	/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/interrupts.o src/interrupts.c -lgcc 
+	/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/timers.o src/timers.c -lgcc
+	/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/video.o src/video.c -lgcc
+	/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/ports.o src/ports.c -lgcc
+	/opt/cross/bin/i686-elf-ld -T src/linker.ld -o build/kernel.elf build/kernel.o build/video.o build/ports.o build/interrupts.o build/timers.o
+	objcopy -O binary build/kernel.elf build/KERNEL.SYS
 
-KERNEL.SYS: kernel.o
-	objcopy -O binary build/kernel.o build/KERNEL.SYS
 
 BootDisk.img: BOOTLOADER.BIN LOADER.SYS KERNEL.SYS
 	dd if=/dev/zero of=BootDisk.img bs=512 count=2880
