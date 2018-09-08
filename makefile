@@ -4,7 +4,7 @@ init:
 	mkdir -p build
 
 run: ALL
-	qemu-system-i386 -drive format=raw,if=floppy,file=BootDisk.img
+	qemu-system-i386 -drive format=raw,if=floppy,file=BootDisk.img -m 128
 
 debug: ALL
 	bochs -f bochsrc.bxrc -q
@@ -16,6 +16,7 @@ LOADER.SYS:
 	nasm src/loader.asm -o build/LOADER.SYS
 
 KERNEL.SYS:
+	# I should start using wildcards, this is ridiculous
 	~/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/kernel.o src/kernel.c -lgcc
 	~/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/interrupts.o src/interrupts.c -lgcc 
 	~/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/timers.o src/timers.c -lgcc
@@ -23,7 +24,8 @@ KERNEL.SYS:
 	~/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/ports.o src/ports.c -lgcc
 	~/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/keyboard.o src/keyboard.c -lgcc
 	~/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/utility.o src/utility.c -lgcc
-	~/opt/cross/bin/i686-elf-ld -T src/linker.ld -o build/kernel.elf build/kernel.o build/video.o build/ports.o build/interrupts.o build/timers.o build/keyboard.o build/utility.o
+	~/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/memory.o src/memory.c -lgcc
+	~/opt/cross/bin/i686-elf-ld -T src/linker.ld -o build/kernel.elf build/kernel.o build/video.o build/ports.o build/interrupts.o build/timers.o build/keyboard.o build/utility.o build/memory.o
 	objcopy -O binary build/kernel.elf build/KERNEL.SYS
 
 

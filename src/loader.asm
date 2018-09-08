@@ -29,7 +29,11 @@ mov ax, [0x7E0E]
 pop ds
 mov bx, [0x7DFE]
 cmp ax, bx
-je A20Error						; If we get the magic boot number then we must have wrapped around
+je A20Error						
+
+; Generate a memory map
+mov di, 0x8000
+call GetMemoryMap
 
 ; Load kernel into memory
 mov si, FILENAME
@@ -48,8 +52,7 @@ mov		cr0, eax
 
 jmp	0x8:Pmode
 
-; ----- Routines -----
-
+; Should just reference this from memory
 bpbBytesPerSector:  	DW 512					; 11 Byte offset
 bpbSectorsPerCluster: 	DB 1					; 13
 bpbReservedSectors: 	DW 1					; 14
@@ -69,8 +72,9 @@ bsSerialNumber:	        DD 0xa0a1a2a3			; 42
 bsVolumeLabel: 	        DB "EDOS       "		; 43
 bsFileSystem: 	        DB "FAT12   "			; 44
 
+; ----- Routines -----
 %include "src/disk.asm"
-%include "src/a20.asm"
+%include "src/memory.asm"
 
 ; Prints a string
 ; SI = Start address of string

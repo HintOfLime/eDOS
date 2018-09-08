@@ -1,4 +1,4 @@
-// I know this is nasty but we have to have the code we want to execute at the begining of the file
+// Currently have to have entry point at beggining of file because the bootloader only works with flat binaries
 void kernel_entry () {
 	asm("cli");
 	kernel_main();
@@ -11,6 +11,7 @@ void kernel_entry () {
 #include "interrupts.h"
 #include "timers.h"
 #include "keyboard.h"
+#include "memory.h"
 
 void default_IRQ_handler () {
 	asm("cli; pusha; xchgw %bx, %bx");
@@ -21,15 +22,20 @@ void default_IRQ_handler () {
 
 static int timerCount = 0;
 static int secondsPassed = 0;
-
+ 
 void timerFunc () {
 	timerCount += 1;
 	if (timerCount >= 50) {
 		//put_string((char*)0xb8000, int_to_string(secondsPassed), 0x07);
-		//put_string((char*)0xb8000, " seconds have passed!\n\r", 0x07);
+		//puvoid setup_keyboard (uint32_t address)t_string((char*)0xb8000, " seconds have passed!\n\r", 0x07);
 		secondsPassed += 1;
 		timerCount = 0;
 	}
+}
+
+void keypressFunc (char key) {
+	// Print characters to screen as they are typed
+	put_char((char*)0xb8000, key, 0x07);
 }
 
 void kernel_main () {
@@ -40,15 +46,16 @@ void kernel_main () {
 	// Setup interupts with default handler
 	setup_interrupts((uint32_t)&default_IRQ_handler);
 
-	// Setup keyboard handler
-	setup_handler(0x21, (uint32_t)&keyboard_handler);
-	update_IDT();
-	enable_PIC_IRQ(1);
+	// Setup keyboard
+	setup_keyboard(&keypressFunc);
 
 	// Set a timer for 50Hz
-	set_timer(50, &timerFunc);
+	setup_timer(50, &timerFunc);
 	put_string((char*)0xb8000, "PIT started\n\r", 0x07);
 
+	get_memory_map();
+
+	// Do nothing
 	while (1) {
 		wait();
 	}

@@ -7,7 +7,7 @@
 ; TODO:
 ;	Add repeats to ReadSectors // Problematic because can't use CX to loop because it is needed for INT 0x13
 ;	Increase max file size // Not needed at the moment
-;	FAT16 // Maybe I'll get round to this so I can USB drives without wasting gigabytes of space
+;	FAT16 // FAT12 is a pain to work with on actual disks
 
 Disk:
 	; --- Reset disk ---
@@ -259,11 +259,11 @@ Disk:
 	
 	; --- Print error message and halt ---
 	.Error:
-		mov si, ERROR_MESSAGE
+		mov si, DISK_ERROR_MESSAGE
 		call Print
 		
 		cli
 		hlt
 	
-ERROR_MESSAGE:
+DISK_ERROR_MESSAGE:
 	db "Disk error!", 0

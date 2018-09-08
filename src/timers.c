@@ -5,7 +5,7 @@
 #include "interrupts.h"
 #include "video.h"
 
-void (*callbackAddress)(void);
+static void (*callbackAddress)(void);
 
 void PIT_handler () {
 	asm("cli; pusha; xchgw %bx, %bx");
@@ -18,7 +18,7 @@ void PIT_handler () {
 
 // Set IRQ0 to fire at rate of once per the specifed time period
 // Max is 50ms		I don't think this is very accurate
-void set_timer (uint16_t frequency, uint32_t address) {
+void setup_timer (uint16_t frequency, uint32_t address) {
 	callbackAddress = address;
 	setup_handler(0x20, (uint32_t)&PIT_handler);
 	update_IDT();

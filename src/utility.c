@@ -1,14 +1,42 @@
 #include "stdint.h"
 #include "utility.h"
 
-char* int_to_string (uint8_t in) {
-	char *out = "   ";
-	out[0] = (in / 100) + 48;
-	out[1] = ((in % 100) / 10) + 48;
-	out[2] = ((in % 100) % 10) + 48;
-	out[3] = '\0';
+char* int_to_string (uint32_t in) {
+	char *out = "";
+	out[0] =  (in / 1000000000) + 48;
+	out[1] = ((in / 100000000) % 10) + 48;
+	out[2] = ((in / 10000000) % 10) + 48;
+	out[3] = ((in / 1000000) % 10) + 48;
+	out[4] = ((in / 100000) % 10) + 48;
+	out[5] = ((in / 10000) % 10) + 48;
+	out[6] = ((in / 1000) % 10) + 48;
+	out[7] = ((in / 100) % 10) + 48;
+	out[8] = ((in / 10) % 10) + 48;
+	out[9] = ((in / 1) % 10) + 48;
+	out[10] = '\0';
 
-	return out;
+	return trim_zeroes(out);
+}
+
+char* trim_zeroes (char* in) {
+	unsigned int l = 0;
+	while (in[l] != '\0') {
+			l += 1;
+	}
+	unsigned int i = 0;
+	while (in[i] == '0') {
+			i += 1;
+	}
+	for (int j = 0; j < i; j++) {
+		if (j+i < l) {
+			in[j] = in[j+i];
+		}
+		else {
+			in[j] = 0;
+		}
+	}
+
+	return in;
 }
 
 char* int_to_hex_string (uint32_t in) {

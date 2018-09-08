@@ -2,8 +2,6 @@
 #include "keyboard.h"
 #include "ports.h"
 #include "interrupts.h"
-#include "video.h"
-#include "utility.h"
 
 enum SCANCODES {
    	NULL_KEY = 0,
@@ -77,16 +75,14 @@ enum SCANCODES {
     CAPSLOCK_PRESSED = 0x3A
 };
 
+static void (*callbackAddress)(char);
+
 void keyboard_handler () {
 	asm("cli; pusha; xchgw %bx, %bx");
 	uint8_t scancode = inb(0x60);
     char key = scancode_to_ascii(scancode);
-	//put_string((char*)0xb8000, "Scan code ", 0x07);
-    //put_string((char*)0xb8000, int_to_hex_string(scancode), 0x07);
-    //put_string((char*)0xb8000, " receieved\n\r", 0x07);
     if (key != 0) {
-        put_char((char*)0xb8000, key, 0x07);
-        //put_string((char*)0xb8000, " key pressed\n\r", 0x07);
+		(callbackAddress)(key);
     }
 	send_PIC_EOI(1);
 	asm("popa; leave; sti; iret");
@@ -118,6 +114,9 @@ char scancode_to_ascii (uint8_t scancode) {
     else if (scancode == SPACE_PRESSED) {
         return ' ';
     }
+	else if (scancode == BACKSPACE_PRESSED) {
+        return '\b';
+    }
     else if (scancode == ENTER_PRESSED) {
         return '\n';
     }
@@ -125,4 +124,11 @@ char scancode_to_ascii (uint8_t scancode) {
         caps = (caps ^ 0x01);
     }
     return 0;
+}
+
+void setup_keyboard (uint32_t address) {
+	callbackAddress = address;
+	setup_handler(0x21, (uint32_t)&keyboard_handler);
+	update_IDT();
+	enable_PIC_IRQ(1);
 }
