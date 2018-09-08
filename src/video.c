@@ -20,11 +20,46 @@ void fill_screen (char *vidptr, char c, char a) {
 	return;
 }
 
+void put_char (char *vidptr, char c, char a) {
+	switch (c) {
+		case '\n': {
+			vidX = 0;
+			vidY += 1;
+			break;
+		}
+		case '\r': {
+			vidX = 0;
+			break;
+		}
+		case '\0': {
+			break;
+		}
+		default: {
+			vidptr[(vidX+(vidY*WIDTH))*2] = c;
+			vidptr[((vidX+(vidY*WIDTH))*2)+1] = a;
+			vidX += 1;
+			break;
+		}
+	}
+	
+	if (vidX > WIDTH) {
+		vidX = 0;
+		vidY += 1;
+	}
+	if (vidY > HEIGHT-1) {
+		scroll_screen(vidptr, 1);
+		vidY = HEIGHT-1;
+	}
+
+	return;
+}
+
 void put_string (char *vidptr, char *str, char a) {
 	unsigned int i = 0;
 	while (str[i] != '\0') {
 		switch (str[i]) {
 			case '\n': {
+				vidX = 0;
 				vidY += 1;
 				break;
 			}
@@ -32,12 +67,13 @@ void put_string (char *vidptr, char *str, char a) {
 				vidX = 0;
 				break;
 			}
+			case '\0': {
+				break;
+			}
 			default: {
 				vidptr[(vidX+(vidY*WIDTH))*2] = str[i];
 				vidptr[((vidX+(vidY*WIDTH))*2)+1] = a;
 				vidX += 1;
-				//vidptr[(i*2)] = str[i];
-				//vidptr[(i*2)+1] = a;
 				break;
 			}
 		}

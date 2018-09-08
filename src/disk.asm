@@ -211,7 +211,7 @@ Disk:
 		mov dx, ax								; Copy to DX
 		shr dx, 1								; Divide by 2
 		add cx, dx								; Sum for 3/2
-		mov bx, [MEM_OFFSET]							; Location of FAT in memory
+		mov bx, [MEM_OFFSET]					; Location of FAT in memory
 		add bx, cx								; Index into FAT
 		mov dx, WORD [bx]						; Read from FAT
 		test ax, 1								; Test if odd
