@@ -16,12 +16,14 @@ LOADER.SYS:
 	nasm src/loader.asm -o build/LOADER.SYS
 
 KERNEL.SYS:
-	/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/kernel.o src/kernel.c -lgcc
-	/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/interrupts.o src/interrupts.c -lgcc 
-	/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/timers.o src/timers.c -lgcc
-	/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/video.o src/video.c -lgcc
-	/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/ports.o src/ports.c -lgcc
-	/opt/cross/bin/i686-elf-ld -T src/linker.ld -o build/kernel.elf build/kernel.o build/video.o build/ports.o build/interrupts.o build/timers.o
+	~/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/kernel.o src/kernel.c -lgcc
+	~/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/interrupts.o src/interrupts.c -lgcc 
+	~/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/timers.o src/timers.c -lgcc
+	~/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/video.o src/video.c -lgcc
+	~/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/ports.o src/ports.c -lgcc
+	~/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/keyboard.o src/keyboard.c -lgcc
+	~/opt/cross/bin/i686-elf-gcc -c -ffreestanding -nostdlib -o build/utility.o src/utility.c -lgcc
+	~/opt/cross/bin/i686-elf-ld -T src/linker.ld -o build/kernel.elf build/kernel.o build/video.o build/ports.o build/interrupts.o build/timers.o build/keyboard.o build/utility.o
 	objcopy -O binary build/kernel.elf build/KERNEL.SYS
 
 

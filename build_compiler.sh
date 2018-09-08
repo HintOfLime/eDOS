@@ -23,6 +23,10 @@ cd build-binutils
 make
 make install
 cd ..
+rm $BINUTIL.tar.gz
+rm $BINUTIL -rf
+rm build-binutils -rf
+
 
 mkdir build-gcc
 cd build-gcc
@@ -32,10 +36,6 @@ make all-target-libgcc
 make install-gcc
 make install-target-libgcc
 cd ..
-
 rm $GCC.tar.gz
-rm $BINUTIL.tar.gz
 rm $GCC -rf
-rm $BINUTIL -rf
 rm build-gcc -rf
-rm build-binutils -rf
